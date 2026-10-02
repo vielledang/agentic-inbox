@@ -81,10 +81,10 @@ export function stripHtml(html: string): string {
 function decodeHtmlEntities(text: string): string {
 	return text
 		.replace(/&#(\d+);/g, (_match: string, code: string) =>
-			String.fromCharCode(Number(code)),
+			String.fromCodePoint(Number(code)),
 		)
 		.replace(/&#x([0-9a-f]+);/gi, (_match: string, hex: string) =>
-			String.fromCharCode(Number.parseInt(hex, 16)),
+			String.fromCodePoint(Number.parseInt(hex, 16)),
 		)
 		.replace(/&amp;/g, "&")
 		.replace(/&lt;/g, "<")
@@ -101,18 +101,27 @@ export function getSnippetText(
 ): string {
 	if (!snippet) return "";
 
-	const clean = decodeHtmlEntities(
-		snippet
-			.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-			.replace(/<style[^>]*>[\s\S]*/gi, "")
-			.replace(/<[^>]*>/g, " ")
-			.replace(/<[^>]*$/g, ""),
-	)
+	let cleaned = snippet
+		.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+		.replace(/<style[^>]*>[\s\S]*/gi, "")
+		.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+		.replace(/<script[^>]*>[\s\S]*/gi, "")
+		.replace(/<[^>]*>/g, " ")
+		.replace(/<[^>]*$/g, "")
+		.trim();
+
+	// Strip any incomplete trailing HTML entity that may have been cut by SUBSTR
+	cleaned = cleaned
+		.replace(/&#x[0-9a-f]*$/i, "")
+		.replace(/&#[0-9]*$/i, "")
+		.replace(/&[a-z]*$/i, "");
+
+	const decoded = decodeHtmlEntities(cleaned)
 		.replace(/\s+/g, " ")
 		.trim();
 
-	if (!clean) return "";
-	return clean.length > maxLength ? `${clean.slice(0, maxLength)}...` : clean;
+	if (!decoded) return "";
+	return decoded.length > maxLength ? `${decoded.slice(0, maxLength)}...` : decoded;
 }
 
 /**

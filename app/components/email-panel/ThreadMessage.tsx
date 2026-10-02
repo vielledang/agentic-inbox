@@ -16,8 +16,8 @@ import EmailIframe from "~/components/EmailIframe";
 import {
 	formatDetailDate,
 	formatShortDate,
+	getSnippetText,
 	rewriteInlineImages,
-	stripHtml,
 } from "~/lib/utils";
 import type { Email } from "~/types";
 
@@ -91,7 +91,7 @@ export default function ThreadMessage({
 							</span>
 						</div>
 						<p className="text-xs text-kumo-subtle truncate">
-							{stripHtml(email.body || "").slice(0, 80)}
+							{getSnippetText(email.body, 80)}
 						</p>
 					</div>
 					<CaretDownIcon size={14} className="text-kumo-subtle shrink-0" />
