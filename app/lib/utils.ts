@@ -79,6 +79,15 @@ export function stripHtml(html: string): string {
 }
 
 function decodeHtmlEntities(text: string): string {
+	// Use the browser's HTML parser to decode *all* named and numeric entities.
+	// getSnippetText strips tags before calling this, so no script execution risk.
+	if (typeof document !== "undefined") {
+		const textarea = document.createElement("textarea");
+		textarea.innerHTML = text;
+		return textarea.value;
+	}
+
+	// Fallback for SSR / non-browser environments: handle numeric + common named only.
 	return text
 		.replace(/&#(\d+);/g, (_match: string, code: string) =>
 			String.fromCodePoint(Number(code)),
